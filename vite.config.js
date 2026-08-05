@@ -2,6 +2,6 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  base: '/Help-Desk-Lite/',
+  base: '/', // This tells Vite to load assets from the root domain
   plugins: [react()],
 })
