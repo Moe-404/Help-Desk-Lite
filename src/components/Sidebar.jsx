@@ -1,16 +1,19 @@
-import { Archive, BarChart3, BookOpen, Headphones, Inbox, LayoutGrid, Settings, Users, X } from 'lucide-react'
+import { Archive, BarChart3, BookOpen, Headphones, Inbox, LayoutGrid, LogOut, ShieldCheck, Users, X } from 'lucide-react'
 import Brand from './Brand'
 import Avatar from './Avatar'
+import { roleLabels } from '../auth/permissions'
 
 const nav = [
-  [LayoutGrid, 'Queue Control'],
-  [Inbox, 'My Tickets'],
-  [Users, 'Team Workload'],
-  [BarChart3, 'Reports'],
-  [BookOpen, 'Knowledge Base'],
+  [LayoutGrid, 'Queue Control', 'queue', ['admin', 'manager', 'agent']],
+  [Inbox, 'My Tickets', 'mine'],
+  [Users, 'Team Workload', 'team', ['admin', 'manager']],
+  [BarChart3, 'Reports', 'reports', ['admin', 'manager']],
+  [BookOpen, 'Knowledge Base', 'knowledge'],
+  [ShieldCheck, 'Access Control', 'admin', ['admin']],
 ]
 
-export default function Sidebar({ open, onClose, mode, setMode }) {
+export default function Sidebar({ open, onClose, mode, setMode, view, onNavigate, myTicketCount = 0, profile, onSignOut }) {
+  const visibleNav = nav.filter(([, , , roles]) => !roles || roles.includes(profile?.role))
   return (
     <>
       {open && <button className="sidebar-scrim" aria-label="Close menu" onClick={onClose} />}
@@ -22,17 +25,17 @@ export default function Sidebar({ open, onClose, mode, setMode }) {
         </div>
         <nav className="side-nav" aria-label="Main navigation">
           <span className="eyebrow">Workspace</span>
-          {nav.map(([Icon, label], index) => (
-            <button key={label} className={index === 0 ? 'active' : ''}><Icon size={18} /><span>{label}</span>{index === 1 && <b>8</b>}</button>
+          {visibleNav.map(([Icon, label, value]) => (
+            <button key={label} className={view === value ? 'active' : ''} onClick={() => { onNavigate(value); onClose() }}><Icon size={18} /><span>{label}</span>{value === 'mine' && <b>{myTicketCount}</b>}</button>
           ))}
         </nav>
         <div className="sidebar-footer">
-          <div className="sla-card">
+          {profile?.role !== 'requester' && <div className="sla-card">
             <div><span className="live-pulse" /> Your SLA today</div>
             <strong>96.4<small>%</small></strong>
             <div className="progress"><i style={{ width: '96%' }} /></div>
-          </div>
-          <button className="agent-card"><Avatar initials="AR" tone="purple" online /><span><strong>Alex Rivera</strong><small>Support Agent</small></span><Settings size={17} /></button>
+          </div>}
+          <div className="agent-card"><Avatar initials={profile?.full_name?.split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase() || 'U'} tone="purple" online /><span><strong>{profile?.full_name || 'User'}</strong><small>{roleLabels[profile?.role] || 'Member'}</small></span><button className="signout-button" title="Sign out" onClick={onSignOut}><LogOut size={17} /></button></div>
         </div>
       </aside>
     </>
